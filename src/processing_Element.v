@@ -12,6 +12,9 @@ module processing_element #(
 );
 
 reg [OUTPUT_WIDTH-1:0] acc;
+ wire sign_bit1 = data_in_1[INPUT_WIDTH-1];
+            wire sign_bit2 = data_in_2[INPUT_WIDTH-1];
+            localparam LENGTH_EXTEND = OUTPUT_WIDTH - INPUT_WIDTH;
 
     always @(posedge clk or posedge rst) begin
 
@@ -28,9 +31,7 @@ reg [OUTPUT_WIDTH-1:0] acc;
             //check 222 again
             //3. assign the result to the acc
 
-            wire sign_bit1 = data_in_1[INPUT_WIDTH-1];
-            wire sign_bit2 = data_in_2[INPUT_WIDTH-1];
-            localparam LENGTH_EXTEND = OUTPUT_WIDTH - INPUT_WIDTH;
+           
             //locaparam is used to define a constant value that can be used in the module, better for compile time
         
 
