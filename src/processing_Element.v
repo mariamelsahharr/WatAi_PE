@@ -1,6 +1,6 @@
 module processing_element #(
    parameter INPUT_WIDTH = 8,
-    parameter OUTPUT_WIDTH = 32
+    parameter OUTPUT_WIDTH = 32,
     parameter REG_FILE_DEPTH = 8, //number of registers in file
     parameter REG_FILE_WIDTH = 3 //bit width of each register
 )(

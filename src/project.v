@@ -6,10 +6,10 @@
 `default_nettype none
 
 module tt_um_pe_mariam #(
-    parameter M = 2
-    parameter N = 2
-    parameter input_width = 8;
-    parameter output_width = 32;
+    parameter M = 2,
+    parameter N = 2,
+    parameter input_width = 8,
+    parameter output_width = 32
 )(
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
