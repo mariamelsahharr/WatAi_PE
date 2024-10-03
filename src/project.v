@@ -8,8 +8,8 @@
 module tt_um_pe_mariam #(
     parameter M = 2,
     parameter N = 2,
-    parameter input_width = 8,
-    parameter output_width = 32
+    parameter INPUT_WIDTH = 8,
+    parameter OUTPUT_WIDTH = 32
 )(
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
@@ -29,7 +29,7 @@ module tt_um_pe_mariam #(
     wire [M-1:0] data_in_1;
     wire [N-1:0] data_in_2;
   //data out according to parameters
-    wire [M-1:0][N-1:0][output_width-1:0] data_out;
+    wire [M-1:0][N-1:0][OUTPUT_WIDTH-1:0] data_out;
     //creates an array of MxN PEs with bit size of output_width
 
     //yapyap assign input data to the data_in_1 and data_in_2
@@ -46,7 +46,6 @@ pe_array #(
     ) pe_array_inst (
         .clk(clk),
         .rst(rst),
-        .precision_mode(precision_mode),
         .data_in_1(data_in_1),
         .data_in_2(data_in_2),
         .data_out(data_out)
