@@ -1,48 +1,72 @@
 module processing_element #(
-   parameter INPUT_WIDTH = 8,
+    parameter INPUT_WIDTH = 16,
     parameter OUTPUT_WIDTH = 32,
-    parameter REG_FILE_DEPTH = 8, //number of registers in file
-    parameter REG_FILE_WIDTH = 3 //bit width of each register
+    parameter MEM_DEPTH = 8,
+    parameter ADDR_WIDTH = $clog2(MEM_DEPTH)
 )(
     input wire clk,
     input wire rst,
-    input wire [INPUT_WIDTH-1:0] data_in_2,
-    input wire [INPUT_WIDTH-1:0] data_in_1,
-    output reg [OUTPUT_WIDTH-1:0] data_out
+    input wire [INPUT_WIDTH-1:0] input_data,  // Input data (activation or weight)
+    input wire [INPUT_WIDTH-1:0] weight,      // Weight input
+    output reg [OUTPUT_WIDTH-1:0] result,     // Output result
+    
+    // Control signals
+    input wire write_weight,            // Signal to write weight to memory
+    input wire use_stored_weight,       // Signal to use weight from memory
+    input wire [ADDR_WIDTH-1:0] mem_addr, // Memory address for read/write
+    input wire end_operation,           // Signal to start a new operation
+    input wire store_result             // Signal to store result in memory
 );
 
+reg [OUTPUT_WIDTH-1:0] local_memory [0:MEM_DEPTH-1];
 reg [OUTPUT_WIDTH-1:0] acc;
- wire sign_bit1 = data_in_1[INPUT_WIDTH-1];
-            wire sign_bit2 = data_in_2[INPUT_WIDTH-1];
-            localparam LENGTH_EXTEND = OUTPUT_WIDTH - INPUT_WIDTH;
+reg op_ctrl;
 
-    always @(posedge clk or posedge rst) begin
+always @(posedge clk or posedge rst) begin
 
-        if (rst) begin
-            acc <= {output_width{1'b0}};
-            data_out <= {output_width{1'b0}};
+    if (rst) begin
+        for (int i = 0; i < MEM_DEPTH; i = i + 1) begin
+            local_memory[i] <= {OUTPUT_WIDTH{1'b0}};
+        end
+
+        acc <= {OUTPUT_WIDTH{1'b0}};
+        result <= {OUTPUT_WIDTH{1'b0}};
+        op_ctrl <= 1'b0;
+    //reset everything
+
+    end else begin
+        // Write weight to memory if requested
+        if (write_weight) begin
+            local_memory[mem_addr] <= {{(OUTPUT_WIDTH-INPUT_WIDTH){weight[INPUT_WIDTH-1]}}, weight};
+        end
+
+        // Perform multiplication and accumulation
+        if (end_operation || !op_ctrl) begin
+            if (use_stored_weight) begin
+                acc <= $signed(input_data) * $signed(local_memory[mem_addr]);
+
+            end else begin
+
+                acc <= $signed(input_data) * $signed({{(OUTPUT_WIDTH-INPUT_WIDTH){weight[INPUT_WIDTH-1]}}, weight});
+            end
+
+            op_ctrl <= 1'b1;
+            //done with it
+
         end else begin
-        
-            //to sign extend we:
-            //1. convert the input to signed
-            //2. add the sign bit to the rest of the bits, that is (output_Width-input_width) times 
-            //ie. if ur output is 16 bits but ur input is 8 bits then u need to add 4 bits to the left
-            //those 4 bits are of the same sign
-            //check 222 again
-            //3. assign the result to the acc
+            if (use_stored_weight) begin
+                acc <= acc + ($signed(input_data) * $signed(local_memory[mem_addr]));
+            end else begin
+                acc <= acc + ($signed(input_data) * $signed({{(OUTPUT_WIDTH-INPUT_WIDTH){weight[INPUT_WIDTH-1]}}, weight}));
+            end
+        end
 
-           
-            //locaparam is used to define a constant value that can be used in the module, better for compile time
-        
-
-        acc <= acc 
-            + $signed({{LENGTH_EXTEND{sign_bit1}}, data_in_1}) 
-            * $signed({{LENGTH_EXTEND{sign_bit2}}, data_in_2});
-            
+        // Update result and reset operation status
+        if (end_operation) begin
+            result <= acc;
+            op_ctrl <= 1'b0;
         end
     end
+end
 
-    always @(posedge clk) begin
-        data_out <= acc;
-    end
 endmodule
